@@ -1,2 +1,2 @@
 # Axio
-use discord Folder !!!!!!
+Tutorial soon
