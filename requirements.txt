@@ -1,0 +1,7 @@
+discord.py-self
+aiohttp
+psutil
+colorama
+aioconsole
+nest_asyncio
+art
