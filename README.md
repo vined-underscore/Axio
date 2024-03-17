@@ -26,3 +26,8 @@ Axio is a sequel to [https://github.com/vined-underscore/VBot](VBot).
 ```
 
 5. Run axio.py, it will create config folders and you can modify the config.json files for each respective account
+
+
+### TODO:
+1. Account nuker
+2. More commands
