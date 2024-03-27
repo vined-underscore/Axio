@@ -1,4 +1,3 @@
-discord.py-self
 aiohttp
 psutil
 colorama

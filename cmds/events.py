@@ -6,7 +6,7 @@ from colorama import Fore as F
 from axio import Axio
 
 
-def get_channel_name(channel: discord.abc.MessageableChannel) -> str:
+def get_channel_name(channel: discord.abc.Messageable) -> str:
     if isinstance(channel, discord.TextChannel) \
             or isinstance(channel, discord.VoiceChannel) \
             or isinstance(channel, discord.ForumChannel):

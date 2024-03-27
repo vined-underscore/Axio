@@ -1,7 +1,6 @@
 from colorama import Fore as F
 from discord.ext import commands
 from discord.ext.commands import Context
-from util.embedder import Embedder
 from util.colors import Colors as C
 from discord.ext.commands import (
     CommandNotFound,

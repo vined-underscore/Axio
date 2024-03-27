@@ -1,6 +1,5 @@
 import re
 import traceback
-from typing import Tuple
 
 import aiohttp
 import discord
@@ -23,7 +22,7 @@ def status_color(status: str) -> tuple[Colour, str]:
         return discord.Color.dark_gray(), F.BLACK
 
 
-def get_channel_name(channel: discord.abc.MessageableChannel) -> str:
+def get_channel_name(channel: discord.abc.Messageable) -> str:
     if isinstance(channel, discord.TextChannel) \
             or isinstance(channel, discord.VoiceChannel) \
             or isinstance(channel, discord.ForumChannel):
