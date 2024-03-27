@@ -15,7 +15,6 @@ from discord.ext.commands import Context
 from util import Token
 from util.colors import Colors as C
 from util.embedder import Embedder
-from util.tokenvanish import TokenVanish
 from util.errors import InvalidToken, AxioException
 from discord.flags import UserFlags
 from discord.ext.commands import (
