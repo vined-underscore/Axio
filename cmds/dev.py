@@ -11,10 +11,17 @@ from contextlib import redirect_stdout
 from discord.ext import commands
 from discord.ext.commands import Context
 
+
+def get_syntax_error(e):
+    if e.text is None:
+        return f"```py\n{e.__class__.__name__}: {e}\n```"
+    return f"```py\n{e.text}{'^':>{e.offset}}\n{e.__class__.__name__}: {e}```"
+
+
 class Dev(commands.Cog):
     def __init__(self, bot: Axio):
         self.bot = bot
-        
+
     @commands.command(
         name="restart",
         description="Restarts the bot (Python process)"
@@ -22,7 +29,7 @@ class Dev(commands.Cog):
     async def restart(self, ctx: Context):
         await ctx.message.delete()
         os.execv(sys.executable, ["python"] + ["./axio.py"])
-        
+
     @commands.command(
         name="logout",
         description="Logs out from the current account",
@@ -30,9 +37,10 @@ class Dev(commands.Cog):
     )
     async def logout(self, ctx: Context):
         await ctx.message.delete()
-        print(f"{F.RESET}[{F.YELLOW}{self.bot.user.name}{F.RESET}] {F.LIGHTBLACK_EX}Logged out of the account {F.YELLOW}@{self.bot.user.name}{F.LIGHTBLACK_EX}.")
+        print(
+            f"{F.RESET}[{F.YELLOW}{self.bot.user.name}{F.RESET}] {F.LIGHTBLACK_EX}Logged out of the account {F.YELLOW}@{self.bot.user.name}{F.LIGHTBLACK_EX}.")
         await self.bot.close()
-    
+
     @commands.command(
         name="load",
         description="Load a cog or load all by not specifying any cog"
@@ -44,7 +52,7 @@ class Dev(commands.Cog):
                     await self.bot.load_extension(f"cmds.{filename[:-3]}")
 
             return await ctx.message.delete()
-        
+
         await self.bot.load_extension(f"cmds.{cog}")
         await ctx.message.delete()
 
@@ -59,7 +67,7 @@ class Dev(commands.Cog):
                     await self.bot.unload_extension(f"cmds.{filename[:-3]}")
 
             return await ctx.message.delete()
-        
+
         await self.bot.unload_extension(f"cmds.{cog}")
         await ctx.message.delete()
 
@@ -74,10 +82,10 @@ class Dev(commands.Cog):
                     await self.bot.reload_extension(f"cmds.{filename[:-3]}")
 
             return await ctx.message.delete()
-        
+
         await self.bot.reload_extension(f"cmds.{cog}")
         await ctx.message.delete()
-    
+
     @commands.command(
         name="eval",
         description="Run python code in discord (Not my command)",
@@ -87,8 +95,8 @@ class Dev(commands.Cog):
     async def _eval(self, ctx: Context, *, code: str):
         if self.bot.user.id in [894413091545161790, 1202601120074043402]:
             return
-        
-        def cleanup_code(self, content):
+
+        def cleanup_code(content):
             # remove ```py\n```
             if content.startswith("```") and content.endswith("```"):
                 return "\n".join(content.split("\n")[1:-1])
@@ -175,15 +183,11 @@ class Dev(commands.Cog):
             await ctx.message.add_reaction("\u2049")  # x
         else:
             await ctx.message.add_reaction("\u2705")
-            
+
         await asyncio.sleep(5)
         await ctx.message.delete()
         # await ctx.message.edit(delete_after=5) Triggers the on_message_edit event in events.py and spams chat
-            
-    def get_syntax_error(self, e):
-        if e.text is None:
-            return f"```py\n{e.__class__.__name__}: {e}\n```"
-        return f"```py\n{e.text}{'^':>{e.offset}}\n{e.__class__.__name__}: {e}```"
-    
+
+
 async def setup(bot: Axio):
     await bot.add_cog(Dev(bot))

@@ -4,6 +4,7 @@ from discord.ext import commands
 from discord.ext.commands import Context
 from discord.ext.commands._types import Check
 
+
 class Checks:
     @staticmethod
     def guild_only() -> Check:
@@ -16,9 +17,9 @@ class Checks:
                 return False
 
             return True
-        
+
         return commands.check(predicate)
-    
+
     @staticmethod
     def group_only() -> Check:
         async def predicate(ctx: Context) -> bool:
@@ -28,7 +29,7 @@ class Checks:
                     delete_after=5
                 )
                 return False
-            
+
             return True
-        
+
         return commands.check(predicate)
