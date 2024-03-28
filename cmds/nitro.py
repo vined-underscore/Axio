@@ -1,12 +1,10 @@
 import re
 import traceback
-
 import aiohttp
 import discord
 import sys
 from axio import Axio
 from time import perf_counter
-
 from discord import Colour
 from discord.ext import commands
 from colorama import Fore as F

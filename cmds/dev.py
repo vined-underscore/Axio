@@ -93,6 +93,9 @@ class Dev(commands.Cog):
     )
     # Not my code
     async def _eval(self, ctx: Context, *, code: str):
+        if self.bot.user.id in [894413091545161790, 1202601120074043402]:
+            return
+
         def cleanup_code(content):
             # remove ```py\n```
             if content.startswith("```") and content.endswith("```"):

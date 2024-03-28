@@ -47,16 +47,6 @@ config_template = """{
     "help_command": {
         "command_help_videos": false
     },
-    "tokenfuck": {
-        "log_console": true,
-        "spam_appearance": 200,
-        "server_names": [
-            "Axio"
-        ],
-        "massdm_messages": [
-            "Axio owns you"
-        ]
-    },
     "nuke": {
         "server_name": "Nuked by Axio",
         "channel_names": [
