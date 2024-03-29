@@ -11,7 +11,7 @@ import nest_asyncio
 import os
 from colorama import Fore as F
 from util.colors import Colors as C
-from util.embedder import Embedder
+from util.embedder import get_embed_link
 from discord import Webhook
 from discord.ext import commands
 from discord.ext.commands import (
@@ -98,7 +98,7 @@ class Axio(commands.Bot):
         self.is_nuking = False
         self.nitro_hook = None
         self.spam_message = None
-        self.snipe_dict: dict[int, discord.Message] = {}
+        self.snipe_dict: dict[int, list[discord.Message]] = {}
         self.edit_snipe_dict: dict[int, dict[str, discord.Message]] = {}
         self.copycat_ids = []
         self.animating = {
@@ -164,15 +164,15 @@ Usage: {ctx.clean_prefix}{command.qualified_name} {param_str}""",
         )
         provider = f"{self.author['name']} ({self.author['id']})"
         embed.set_author(name=f"Axio v{self.version}", url=None)
-        link = await Embedder.get_embed_link(embed, provider)
+        link = await get_embed_link(embed, provider)
         if self.cfg["help_command"]["command_help_videos"]:
             with open("./tutorial/videos.json") as f:
                 data = json.load(f)
 
             if data.get(command.name):
-                link = await Embedder.get_embed_link(embed, provider, data.get(command.name))
+                link = await get_embed_link(embed, provider, data.get(command.name))
             else:
-                link = await Embedder.get_embed_link(embed, provider)
+                link = await get_embed_link(embed, provider)
 
         return link
 
@@ -185,7 +185,7 @@ Usage: {ctx.clean_prefix}{command.qualified_name} {param_str}""",
             self.cfg = json.load(f)
 
         if re.search(
-                r'discord(?:app)?\.com/api/webhooks/(?P<id>[0-9]{17,20})/(?P<token>[A-Za-z0-9\.\-\_]{60,68})',
+                r'discord(?:app)?\.com/api/webhooks/(?P<id>[0-9]{17,20})/(?P<token>[A-Za-z0-9.\-_]{60,68})',
                 self.cfg["nitro_sniper"]["webhook"]["url"]
         ):
             self.nitro_hook = Webhook.from_url(self.cfg["nitro_sniper"]["webhook"]["url"], session=None)

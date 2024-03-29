@@ -2,6 +2,7 @@ class InvalidToken(Exception):
     """
     Custom exception for token commands
     """
+
     def __init__(self):
         self.message = "You provided an invalid token."
         super().__init__(self.message)

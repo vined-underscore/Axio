@@ -70,7 +70,7 @@ class Errors(commands.Cog):
         await ctx.message.edit(content=message, delete_after=5)
         if self.bot.cfg["logging"]["error_logging"]:
             print(
-                f"{F.RESET}[{F.YELLOW}{self.bot.user.name}{F.RESET}] {F.LIGHTBLACK_EX}Error in command {F.YELLOW}{ctx.command.name}{F.LIGHTBLACK_EX}: {F.RED}{error}")
+                f"{F.RESET}[{F.YELLOW}{self.bot.user.name}{F.RESET}] {F.LIGHTBLACK_EX}Error in command {F.YELLOW}{ctx.command.name}{F.LIGHTBLACK_EX}: {F.RED}{error}{F.RESET}")
 
 
 async def setup(bot: Axio):

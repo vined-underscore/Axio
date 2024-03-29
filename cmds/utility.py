@@ -5,17 +5,18 @@ import random
 import os
 import re
 import aiohttp
+from io import StringIO
 from os import PathLike
 from axio import Axio
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 from datetime import datetime
 from discord.ext import commands
 from discord.ext.commands import Context
-from util import Token
+from util.token import check_token
 from util.colors import Colors as C
-from util.embedder import Embedder
-from util.errors import InvalidToken, AxioException
+from util.embedder import get_embed_link
+from util.errors import AxioException, InvalidToken
 from discord.flags import UserFlags
 from discord.ext.commands import (
     BadArgument
@@ -55,10 +56,13 @@ class Utility(commands.Cog):
 
     @commands.command(
         name="user",
-        description="Get information about an user",
+        description="Get information about your profile (or the specified user)",
         aliases=["userinfo"]
     )
-    async def user(self, ctx: Context, user: discord.User):
+    async def user(self, ctx: Context, user: Optional[discord.User]):
+        if not user:
+            user = ctx.author
+
         now = datetime.now().astimezone()
         created_at = user.created_at
         days_ago = now - created_at
@@ -76,7 +80,7 @@ Avatar: {user.avatar.url if user.avatar else 'None'}"""
         provider = f"{self.bot.author['name']} ({self.bot.author['id']})"
         em.set_thumbnail(url=user.avatar.with_size(64).url)
         em.set_author(name=f"Axio v{self.bot.version}", url=None)
-        link = await Embedder.get_embed_link(em, provider)
+        link = await get_embed_link(em, provider)
         await ctx.send(
             f"{self.bot.user.mention}||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||{link}")
         await ctx.message.delete()
@@ -84,11 +88,17 @@ Avatar: {user.avatar.url if user.avatar else 'None'}"""
 
     @commands.command(
         name="server",
-        description="Get information about the current server",
+        description="Get information about the current (or specified) server",
         aliases=["serverinfo"]
     )
-    async def server(self, ctx: Context):
-        guild = ctx.guild
+    async def server(self, ctx: Context, guild_id: Optional[int]):
+        if not guild_id:
+            if not ctx.guild:
+                return await ctx.message.delete()
+
+            guild_id = ctx.guild.id
+
+        guild = self.bot.get_guild(guild_id)
         if not guild:
             return await ctx.message.delete()
 
@@ -112,7 +122,7 @@ Icon: {guild.icon.url if guild.icon else 'None'}"""
         )
         provider = f"{self.bot.author['name']} ({self.bot.author['id']})"
         em.set_author(name=f"Axio v{self.bot.version}", url=None)
-        link = await Embedder.get_embed_link(em, provider)
+        link = await get_embed_link(em, provider)
         await ctx.send(
             f"{self.bot.user.mention}||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||{link}")
         await ctx.message.delete()
@@ -124,7 +134,7 @@ Icon: {guild.icon.url if guild.icon else 'None'}"""
         aliases=["tinfo", "tokinfo"]
     )
     async def tokeninfo(self, ctx: Context, token: str):
-        check = await Token.check_token(token)
+        check = await check_token(token)
         if not check[0]:
             raise InvalidToken()
 
@@ -145,7 +155,7 @@ Flags: {user_flags.get(data['flags'])} ({data['flags']})
         )
         provider = f"{self.bot.author['name']} ({self.bot.author['id']})"
         em.set_author(name=f"Axio v{self.bot.version}", url=None)
-        link = await Embedder.get_embed_link(em, provider)
+        link = await get_embed_link(em, provider)
         await ctx.send(
             f"{self.bot.user.mention}||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||{link}")
         await ctx.message.delete()
@@ -153,7 +163,7 @@ Flags: {user_flags.get(data['flags'])} ({data['flags']})
 
     @commands.command(
         name="geoip",
-        description="Get IP information",
+        description="Get information about an IP address",
         aliases=["ipinfo"]
     )
     async def geoip(self, ctx: Context, ip: str):
@@ -165,7 +175,7 @@ Flags: {user_flags.get(data['flags'])} ({data['flags']})
             if data["status"] == "fail":
                 return await ctx.message.delete()
 
-            await ctx.message.edit(content=f"""```ansi
+            await ctx.message.edit(f"""```ansi
 {C.YELLOW}{ip}{C.RESET} Information
 
 - Country: {C.YELLOW}{data['country']}{C.RESET}
@@ -186,7 +196,7 @@ Flags: {user_flags.get(data['flags'])} ({data['flags']})
 
     @commands.command(
         name="friends",
-        description="Saves all your friends in the account's data path"
+        description="Saves all your friends in the accounts data path"
     )
     async def friends(self, ctx: Context):
         friend_list = [user.user for user in self.bot.friends]
@@ -251,7 +261,7 @@ Servers: {len(self.bot.guilds)}""",
         )
         provider = f"{self.bot.author['name']} ({self.bot.author['id']})"
         em.set_author(name=f"Axio v{self.bot.version}", url=None)
-        link = await Embedder.get_embed_link(em, provider)
+        link = await get_embed_link(em, provider)
         await ctx.send(
             f"{self.bot.user.mention}||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||{link}")
         await ctx.message.delete()
@@ -379,7 +389,7 @@ Servers: {len(self.bot.guilds)}""",
         )
         provider = f"{self.bot.author['name']} ({self.bot.author['id']})"
         em.set_author(name=f"Axio v{self.bot.version}", url=None)
-        link = await Embedder.get_embed_link(em, provider)
+        link = await get_embed_link(em, provider)
         await ctx.send(
             f"{self.bot.user.mention}||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||{link}")
         await ctx.message.delete()
@@ -394,6 +404,9 @@ Servers: {len(self.bot.guilds)}""",
 
         with open(self.bot.cfg_path, "r+") as f:
             data = json.load(f)
+            if prefix in data["prefixes"]:
+                raise AxioException(f"{C.RED}Prefix already exists")
+
             data["prefixes"].append(prefix)
             with open(self.bot.cfg_path, "w+") as out:
                 json.dump(data, out, indent=4)
@@ -409,8 +422,8 @@ Servers: {len(self.bot.guilds)}""",
     async def removeprefix(self, ctx: Context, prefix: str):
         with open(self.bot.cfg_path, "r+") as f:
             data = json.load(f)
-            if not prefix in data["prefixes"]:
-                return await ctx.message.delete()
+            if prefix not in data["prefixes"]:
+                raise AxioException(f"{C.RED}Prefix doesn't exist")
 
             data["prefixes"].remove(prefix)
             with open(self.bot.cfg_path, "w+") as out:
@@ -453,16 +466,26 @@ Servers: {len(self.bot.guilds)}""",
 
     @commands.command(
         name="snipe",
-        description="Shows the last deleted message in the current channel"
+        description="Shows all logged deleted messages in the current channel"
     )
     async def snipe(self, ctx: Context):
-        message = self.bot.snipe_dict.get(ctx.channel.id)
-        if not message:
-            return await ctx.message.delete()
+        messages = self.bot.snipe_dict.get(ctx.channel.id)
+        full = "|--- Axio ---|\n\n"
+        for message in messages:
+            nl = "\n"
+            full += f"{message.author.name} | {message.created_at}\n    {message.content}\n{nl.join([att.url for att in message.attachments])}\n"
 
-        clean = message.content.replace("`", "")
-        await ctx.message.edit(
-            content=f"```ansi\n{C.YELLOW}{message.author.name} {C.RESET}| {C.YELLOW}{message.created_at}\n{C.RESET}  {clean}```")
+        file = StringIO(full)
+        await ctx.message.delete()
+        await ctx.send(file=discord.File(file, filename=f"{len(messages)}-Deleted-Messages.txt"))
+
+    @commands.command(
+        name="clearsnipe",
+        description="Clears the deleted message list"
+    )
+    async def clearsnipe(self, ctx: Context):
+        self.bot.snipe_dict[ctx.channel.id] = []
+        await ctx.message.delete()
 
     @commands.command(
         name="editsnipe",

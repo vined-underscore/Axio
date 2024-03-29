@@ -1,7 +1,7 @@
 import discord
 import random
 from discord.ext import commands
-from util.embedder import Embedder
+from util.embedder import get_embed_link
 from util.colors import Colors as C
 from discord.ext.commands import (
     Context,
@@ -22,7 +22,7 @@ class Help(commands.Cog):
             color: int
     ) -> None:
         await ctx.message.delete()
-        commands = [command for command in self.bot.get_cog("Help").get_commands()]
+        cmds = [command for command in self.bot.get_cog("Help").get_commands()]
         desc = ""
         em = discord.Embed(
             title=f"Categories",
@@ -32,11 +32,11 @@ class Help(commands.Cog):
         em.set_author(name=f"Axio v{self.bot.version} | {len(self.bot.commands)} Commands", url=None)
         em.set_thumbnail(
             url="https://media.discordapp.net/attachments/1139901136128721009/1212184056452620308/V5OzrAD.png?ex=65f0e960&is=65de7460&hm=eaa8cd1dc4e436caa7a3e181229df8b84686c4201c6240e792a70b13f1535df2&=&format=webp&quality=lossless")
-        for command in commands:
+        for command in cmds:
             desc += f"{ctx.prefix}{command.name}: {command.description or command.brief or command.short_doc}\n"
 
         em.description = desc
-        link = await Embedder.get_embed_link(em, provider)
+        link = await get_embed_link(em, provider)
         await ctx.send(
             f"{self.bot.user.mention}||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||{link}")
 
@@ -46,7 +46,7 @@ class Help(commands.Cog):
             color: int,
             page: int
     ) -> None:
-        commands = [command for command in cog.get_commands()]
+        cmds = [command for command in cog.get_commands()]
         desc = f"'{ctx.prefix}{ctx.command.name} (page)' to see other commands\n\n"
         em = discord.Embed(
             title=f"{cog.qualified_name} Commands",
@@ -56,7 +56,7 @@ class Help(commands.Cog):
         commands_per_page = 4
 
         index = [0, commands_per_page]
-        if not (page - 1) * commands_per_page > len(commands):
+        if not (page - 1) * commands_per_page > len(cmds):
             if (page - 1) < 0:
                 index = [0, commands_per_page]
             else:
@@ -64,14 +64,14 @@ class Help(commands.Cog):
                 index[1] += (page - 1) * commands_per_page
 
         current_page = (index[0] // commands_per_page) + 1
-        total_pages = (len(commands) + commands_per_page - 1) // commands_per_page
+        total_pages = (len(cmds) + commands_per_page - 1) // commands_per_page
         em.set_author(name=f"Axio v{self.bot.version} | Page {current_page}/{total_pages}", url=None)
         em.set_thumbnail(url=self.bot.em_thumbnail)
-        for command in commands[index[0]:index[1]]:
+        for command in cmds[index[0]:index[1]]:
             desc += f"{ctx.prefix}{command.name}: {command.description or command.brief or command.short_doc}\n\n"
 
         em.description = desc
-        link = await Embedder.get_embed_link(em, provider)
+        link = await get_embed_link(em, provider)
         await ctx.send(
             f"{self.bot.user.mention}||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||{link}")
         await ctx.message.delete()

@@ -60,7 +60,7 @@ class Events(commands.Cog):
                 await msg.delete()
             # elif payload.emoji.name == "⏸️" and payload.message_id == self.bot.animating["message"]["id"]:
             #     channel = self.bot.get_channel(payload.channel_id)
-            #     msg = await channel.fetch_message(payload.message_id)     
+            #     msg = await channel.fetch_message(payload.message_id)
             #     if msg.reactions == []:
             #         return
 
@@ -107,7 +107,17 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message):
-        self.bot.snipe_dict[message.channel.id] = message
+        if not self.bot.snipe_dict.get(message.channel.id):
+            self.bot.snipe_dict[message.channel.id] = []
+        #     self.bot.snipe_dict[message.channel.id].append(message)
+        # else:
+        #     if len(self.bot.snipe_dict[message.channel.id]) >= 5:
+        #         self.bot.snipe_dict[message.channel.id].pop(0)
+        #         self.bot.snipe_dict[message.channel.id].append(message)
+        #     else:
+        #         self.bot.snipe_dict[message.channel.id].append(message)
+
+        self.bot.snipe_dict[message.channel.id].append(message)
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message):

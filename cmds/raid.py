@@ -2,7 +2,7 @@ import random
 import discord
 import asyncio
 from colorama import Fore as F
-from util.checks import Checks
+from util.checks import guild_only, group_only
 from itertools import cycle
 from typing import Optional
 from discord.ext.commands import Context
@@ -77,7 +77,7 @@ class Raid(commands.Cog):
         description="Spams a message in all channels in the current guild",
         aliases=["aspam"]
     )
-    @Checks.guild_only()
+    @guild_only()
     async def spamall(self, ctx: Context, amount: Optional[int], *, msg: str):
         if self.bot.is_spamming:
             return await ctx.message.delete()
@@ -134,7 +134,7 @@ class Raid(commands.Cog):
         description=f"Creates a webhook and spams it. Surround the name with \"\"",
         aliases=["spamw", "sweb"]
     )
-    @Checks.guild_only()
+    @guild_only()
     @commands.has_guild_permissions(manage_webhooks=True)
     async def spamweb(self, ctx: Context, amount: Optional[int], name: str = "Axio", *, message: str):
         self.bot.is_spamming = True
@@ -156,7 +156,7 @@ class Raid(commands.Cog):
         description="Spams and deletes a message in all channels in the current guild",
         aliases=["gaspam", "gspamall"]
     )
-    @Checks.guild_only()
+    @guild_only()
     async def ghostspamall(self, ctx: Context, amount: Optional[int], *, msg: str):
         if self.bot.is_spamming:
             return await ctx.message.delete()
@@ -186,7 +186,7 @@ class Raid(commands.Cog):
         description="Creates an amount text channels in the current server",
         aliases=["ccr", "cc"]
     )
-    @Checks.guild_only()
+    @guild_only()
     @commands.has_guild_permissions(manage_channels=True)
     async def channelcreate(self, ctx: Context, amount: int, *, name: str):
         if self.bot.is_channel_spamming:
@@ -210,7 +210,7 @@ class Raid(commands.Cog):
         description="Deletes all channels in the current server. Cannot be stopped",
         aliases=["cd"]
     )
-    @Checks.guild_only()
+    @guild_only()
     @commands.has_guild_permissions(manage_channels=True)
     async def channeldelete(self, ctx: Context, name: str = None):
         if name:
@@ -226,7 +226,7 @@ class Raid(commands.Cog):
         description="Creates an amount of roles in the current server",
         aliases=["rc"]
     )
-    @Checks.guild_only()
+    @guild_only()
     @commands.has_guild_permissions(manage_roles=True)
     async def rolecreate(self, ctx: Context, amount: int, *, name: str):
         if self.bot.is_role_spamming:
@@ -256,7 +256,7 @@ class Raid(commands.Cog):
         description="Deletes all roles in the current server. Cannot be stopped",
         aliases=["rd"]
     )
-    @Checks.guild_only()
+    @guild_only()
     @commands.has_guild_permissions(manage_roles=True)
     async def roledelete(self, ctx: Context, *, name: str = None):
         if name:
@@ -273,7 +273,7 @@ class Raid(commands.Cog):
         name="banall",
         description="Bans everyone in the current server"
     )
-    @Checks.guild_only()
+    @guild_only()
     @commands.has_guild_permissions(ban_members=True)
     async def banall(self, ctx: Context):
         if self.bot.is_banning:
@@ -299,7 +299,7 @@ class Raid(commands.Cog):
         name="unbanall",
         description="Unbans everyone that is banned from the current server"
     )
-    @Checks.guild_only()
+    @guild_only()
     @commands.has_guild_permissions(ban_members=True)
     async def unbanall(self, ctx: Context):
         if self.bot.is_banning:
@@ -322,7 +322,7 @@ class Raid(commands.Cog):
         name="gcname",
         description="Spams the groupchat name an amount of times"
     )
-    @Checks.group_only()
+    @group_only()
     async def gcname(self, ctx: Context, amount: int, *, text: str):
         self.bot.is_spamming_gc = True
         for i in range(amount):
@@ -338,10 +338,10 @@ class Raid(commands.Cog):
         name="massmention",
         description="Mentions every person in the current server"
     )
-    @Checks.guild_only()
+    @guild_only()
     async def massmention(self, ctx: Context):
         await ctx.guild.fetch_members([discord.Object(ch.id) for ch in ctx.guild.channels], force_scraping=True)
-        members = [member.mention for member in ctx.guild.members if not member.bot]
+        members = [member.mention for member in ctx.guild.members if not member.bot and member.id != self.bot.user.id]
         pages = []
 
         for i in range(0, len(members), 10):
@@ -354,7 +354,7 @@ class Raid(commands.Cog):
                 break
 
             await ctx.send(" ".join(p))
-            await asyncio.sleep(3)
+            await asyncio.sleep(1)
 
         await ctx.message.delete()
         self.bot.is_massmentioning = False
@@ -407,7 +407,7 @@ class Raid(commands.Cog):
         name="nuke",
         description="Nukes the specified server. Using it too much will slow down the next nukes"
     )
-    @Checks.guild_only()
+    @guild_only()
     @commands.has_permissions(administrator=True)
     async def nuke(self, ctx: Context, guild_id: int):
         if self.bot.is_nuking:
@@ -577,7 +577,7 @@ class Raid(commands.Cog):
                     except Forbidden:
                         pass
 
-    async def send_http(self, ctx: Context, msg: str, ratelimits: list) -> bool:
+    async def send_http(self, ctx: Context, msg: str, ratelimits: list) -> None:
         async with ClientSession() as client:
             async with client.post(
                     f"https://discord.com/api/v9/channels/{ctx.channel.id}/messages",
@@ -591,7 +591,7 @@ class Raid(commands.Cog):
                     data = await r.json()
                     await asyncio.sleep(float(data["retry_after"] + float(random.uniform(0.2, 1.5))))
                     if ratelimits:
-                        ratelimits.append(self.send_http(ctx, msg, None))
+                        ratelimits.append(self.send_http(ctx, msg, []))
 
     async def spam_webhook(self, webhook: discord.Webhook, name: str, message: str):
         while self.bot.is_nuking:
