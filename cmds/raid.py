@@ -341,7 +341,6 @@ class Raid(commands.Cog):
     async def massmention(self, ctx: Context, channel_id: Optional[int], do_spam: Optional[bool]):
         channel_id = channel_id or ctx.channel.id
         channel = self.bot.get_channel(channel_id)
-        print(do_spam)
         if not channel:
             return await ctx.message.delete()
 
