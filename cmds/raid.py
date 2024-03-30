@@ -377,7 +377,6 @@ class Raid(commands.Cog):
 
                 try:
                     await channel.send(" ".join(p))
-                    await asyncio.sleep(random.random())
                 except discord.Forbidden:
                     self.bot.is_massmentioning = False
         else:
@@ -385,7 +384,6 @@ class Raid(commands.Cog):
             while self.bot.is_massmentioning:
                 try:
                     await channel.send(" ".join(next(pages)))
-                    await asyncio.sleep(random.random())
                 except discord.Forbidden:
                     self.bot.is_massmentioning = False
 
