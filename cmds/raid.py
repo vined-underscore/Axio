@@ -1,6 +1,7 @@
 import random
 import discord
 import asyncio
+import random
 from colorama import Fore as F
 from util.checks import guild_only, group_only
 from itertools import cycle
@@ -336,12 +337,32 @@ class Raid(commands.Cog):
 
     @commands.command(
         name="massmention",
-        description="Mentions every person in the current server"
+        description="Mentions every person in the current server (or specified channel)"
     )
-    @guild_only()
-    async def massmention(self, ctx: Context):
-        await ctx.guild.fetch_members([discord.Object(ch.id) for ch in ctx.guild.channels], force_scraping=True)
-        members = [member.mention for member in ctx.guild.members if not member.bot and member.id != self.bot.user.id]
+    async def massmention(self, ctx: Context, channel_id: Optional[int]):
+        channel_id = channel_id or ctx.channel.id
+        channel = self.bot.get_channel(channel_id)
+        if not channel:
+            return await ctx.message.delete()
+
+        if not isinstance(channel, discord.abc.GuildChannel):
+            return await ctx.message.delete()
+
+        if isinstance(channel, discord.ForumChannel) \
+                or isinstance(channel, discord.CategoryChannel) \
+                or isinstance(channel, discord.StageChannel):
+            return await ctx.message.delete()
+
+        guild = channel.guild
+        await guild.fetch_members(
+            [discord.Object(ch.id) for ch in guild.channels],
+            force_scraping=True
+        )
+        members = [
+            member.mention for member in guild.members
+            if not member.bot
+            and member.id != self.bot.user.id
+        ]
         pages = []
 
         for i in range(0, len(members), 10):
@@ -353,8 +374,8 @@ class Raid(commands.Cog):
             if not self.bot.is_massmentioning:
                 break
 
-            await ctx.send(" ".join(p))
-            await asyncio.sleep(1)
+            await channel.send(" ".join(p))
+            await asyncio.sleep(random.random())
 
         await ctx.message.delete()
         self.bot.is_massmentioning = False
