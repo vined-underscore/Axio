@@ -4,7 +4,7 @@
 
 Axio is a sequel to [https://github.com/vined-underscore/VBot](VBot).
 > Axio has 60+ commands and it supports multiple accounts at once.
-> It uses embeds (with links) instead of normal messages as responses to commands.
+> It mostly uses embeds (with links) instead of normal messages as responses to commands.
 
 ## How to use
 
