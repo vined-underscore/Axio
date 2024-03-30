@@ -1,6 +1,7 @@
 import asyncio
 import json
 import threading
+import typing
 import aiohttp
 import colorama
 import time
@@ -151,8 +152,11 @@ class Axio(commands.Bot):
 
     async def command_help_link(self, ctx: Context, command: Command) -> str:
         param_str = ""
+        boolean_param: commands.Parameter | None = None
         for param in command.params.values():
             param_str += f"[{param.name}] "
+            if param.annotation == bool or param.annotation == typing.Optional[bool]:
+                boolean_param = param
 
         embed = discord.Embed(
             title=f"{command.name.capitalize()} Command Usage",
@@ -162,6 +166,10 @@ Aliases: {", ".join([f"{ctx.clean_prefix}{alias}" for alias in command.aliases])
 Usage: {ctx.clean_prefix}{command.qualified_name} {param_str}""",
             color=0xB59410
         )
+        # This only handles one parameter in the command
+        if boolean_param is not None:
+            embed.description += f"\n\nThe parameter {boolean_param.name} is a boolean. Enter 1 (true) or 0 (false)"
+
         provider = f"{self.author['name']} ({self.author['id']})"
         embed.set_author(name=f"Axio v{self.version}", url=None)
         link = await get_embed_link(embed, provider)

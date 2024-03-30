@@ -16,7 +16,7 @@ async def get_embed_link(
     provider = quote(provider) if provider else ""
     author = quote(embed.author.name) if embed.author.name else ""
     thumbnail = quote(embed.thumbnail.url) if embed.thumbnail else ""
-    color = quote(Embedder.rgb_to_hex(embed.colour.to_rgb())) if embed.color else ""
+    color = quote(rgb_to_hex(embed.colour.to_rgb())) if embed.color else ""
     media_type = "none" if not thumbnail else "thumbnail"
     if video_url:
         thumbnail = quote(video_url)

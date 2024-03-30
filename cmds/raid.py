@@ -1,4 +1,3 @@
-import random
 import discord
 import asyncio
 import random
@@ -339,9 +338,10 @@ class Raid(commands.Cog):
         name="massmention",
         description="Mentions every person in the current server (or specified channel)"
     )
-    async def massmention(self, ctx: Context, channel_id: Optional[int]):
+    async def massmention(self, ctx: Context, channel_id: Optional[int], do_spam: Optional[bool]):
         channel_id = channel_id or ctx.channel.id
         channel = self.bot.get_channel(channel_id)
+        print(do_spam)
         if not channel:
             return await ctx.message.delete()
 
@@ -370,12 +370,24 @@ class Raid(commands.Cog):
             pages.append(chunk)
 
         self.bot.is_massmentioning = True
-        for p in pages:
-            if not self.bot.is_massmentioning:
-                break
+        if not do_spam:
+            for p in pages:
+                if not self.bot.is_massmentioning:
+                    break
 
-            await channel.send(" ".join(p))
-            await asyncio.sleep(random.random())
+                try:
+                    await channel.send(" ".join(p))
+                    await asyncio.sleep(random.random())
+                except discord.Forbidden:
+                    self.bot.is_massmentioning = False
+        else:
+            pages = cycle(pages)
+            while self.bot.is_massmentioning:
+                try:
+                    await channel.send(" ".join(next(pages)))
+                    await asyncio.sleep(random.random())
+                except discord.Forbidden:
+                    self.bot.is_massmentioning = False
 
         await ctx.message.delete()
         self.bot.is_massmentioning = False
