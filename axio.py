@@ -168,7 +168,7 @@ Usage: {ctx.clean_prefix}{command.qualified_name} {param_str}""",
         )
         # This only handles one parameter in the command
         if boolean_param is not None:
-            embed.description += f"\n\nThe parameter {boolean_param.name} is a boolean. Enter 1 (true) or 0 (false)"
+            embed.description += f"\n\nThe parameter {boolean_param.name} is a boolean.\nYou can enter 1 (true) or 0 (false)\nYou can also enter true or false."
 
         provider = f"{self.author['name']} ({self.author['id']})"
         embed.set_author(name=f"Axio v{self.version}", url=None)
