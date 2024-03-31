@@ -465,6 +465,9 @@ Servers: {len(self.bot.guilds)}""",
     )
     async def snipe(self, ctx: Context):
         messages = self.bot.snipe_dict.get(ctx.channel.id)
+        if not messages:
+            return await ctx.message.delete()
+
         full = "|--- Axio ---|\n\n"
         for message in messages:
             nl = "\n"
