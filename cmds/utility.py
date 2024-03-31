@@ -92,12 +92,7 @@ Avatar: {user.avatar.url if user.avatar else 'None'}"""
         aliases=["serverinfo"]
     )
     async def server(self, ctx: Context, guild_id: Optional[int]):
-        if not guild_id:
-            if not ctx.guild:
-                return await ctx.message.delete()
-
-            guild_id = ctx.guild.id
-
+        guild_id = guild_id or ctx.guild.id
         guild = self.bot.get_guild(guild_id)
         if not guild:
             return await ctx.message.delete()

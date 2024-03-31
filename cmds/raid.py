@@ -362,11 +362,11 @@ class Raid(commands.Cog):
         members = [
             member.mention for member in guild.members
             if not member.bot
-               and member.id != guild.me.id
-               and not member.guild_permissions.administrator
-               or not member.guild_permissions.ban_members
-               or not member.guild_permissions.kick_members
-               or not member.guild_permissions.mute_members
+            and member.id != guild.me.id
+            and not member.guild_permissions.administrator
+            or not member.guild_permissions.ban_members
+            or not member.guild_permissions.kick_members
+            or not member.guild_permissions.mute_members
         ]
         pages = []
 
@@ -412,11 +412,11 @@ class Raid(commands.Cog):
         members = [
             member.mention for member in guild.members
             if not member.bot
-               and member.id != guild.me.id
-               and not member.guild_permissions.administrator
-               or not member.guild_permissions.ban_members
-               or not member.guild_permissions.kick_members
-               or not member.guild_permissions.mute_members
+            and member.id != guild.me.id
+            and not member.guild_permissions.administrator
+            or not member.guild_permissions.ban_members
+            or not member.guild_permissions.kick_members
+            or not member.guild_permissions.mute_members
         ]
 
         file = StringIO(" ".join(members))
