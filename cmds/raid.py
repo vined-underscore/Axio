@@ -1,6 +1,7 @@
 import discord
 import asyncio
 import random
+from io import StringIO
 from colorama import Fore as F
 from util.checks import guild_only, group_only
 from itertools import cycle
@@ -341,6 +342,7 @@ class Raid(commands.Cog):
     async def massmention(self, ctx: Context, channel_id: Optional[int], do_spam: Optional[bool]):
         channel_id = channel_id or ctx.channel.id
         channel = self.bot.get_channel(channel_id)
+        mentions_per_msg = 10
         if not channel:
             return await ctx.message.delete()
 
@@ -360,16 +362,16 @@ class Raid(commands.Cog):
         members = [
             member.mention for member in guild.members
             if not member.bot
-            and member.id != self.bot.user.id
-            and not member.guild_permissions.administrator
-            or not member.guild_permissions.ban_members
-            or not member.guild_permissions.kick_members
-            or not member.guild_permissions.mute_members
+               and member.id != guild.me.id
+               and not member.guild_permissions.administrator
+               or not member.guild_permissions.ban_members
+               or not member.guild_permissions.kick_members
+               or not member.guild_permissions.mute_members
         ]
         pages = []
 
-        for i in range(0, len(members), 10):
-            chunk = members[i:i + 10]
+        for i in range(0, len(members), mentions_per_msg):
+            chunk = members[i:i + mentions_per_msg]
             pages.append(chunk)
 
         self.bot.is_massmentioning = True
@@ -395,23 +397,14 @@ class Raid(commands.Cog):
 
     @commands.command(
         name="mentionmsg",
-        description="Sends a message containing all mentions of every user in the current server (or specified channel)"
+        description="Sends a file containing all mentions of every user in the current (or specified) server"
     )
-    async def mentionmsg(self, ctx: Context, channel_id: Optional[int]):
-        channel_id = channel_id or ctx.channel.id
-        channel = self.bot.get_channel(channel_id)
-        if not channel:
+    async def mentionmsg(self, ctx: Context, guild_id: Optional[int]):
+        guild_id = guild_id or ctx.guild.id
+        guild = self.bot.get_guild(guild_id)
+        if not guild:
             return await ctx.message.delete()
 
-        if not isinstance(channel, discord.abc.GuildChannel):
-            return await ctx.message.delete()
-
-        if isinstance(channel, discord.ForumChannel) \
-                or isinstance(channel, discord.CategoryChannel) \
-                or isinstance(channel, discord.StageChannel):
-            return await ctx.message.delete()
-
-        guild = channel.guild
         await guild.fetch_members(
             [discord.Object(ch.id) for ch in guild.channels],
             force_scraping=True
@@ -419,14 +412,16 @@ class Raid(commands.Cog):
         members = [
             member.mention for member in guild.members
             if not member.bot
-            and member.id != self.bot.user.id
-            and not member.guild_permissions.administrator
-            or not member.guild_permissions.ban_members
-            or not member.guild_permissions.kick_members
-            or not member.guild_permissions.mute_members
+               and member.id != guild.me.id
+               and not member.guild_permissions.administrator
+               or not member.guild_permissions.ban_members
+               or not member.guild_permissions.kick_members
+               or not member.guild_permissions.mute_members
         ]
 
-        return await ctx.message.edit(content="```\n" + " ".join(members) + "```")
+        file = StringIO(" ".join(members))
+        await ctx.message.delete()
+        await ctx.send(file=discord.File(file, filename=f"{len(members)}-Mentions.txt"))
 
     async def start_spam(
             self,
