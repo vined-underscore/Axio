@@ -4,3 +4,4 @@ colorama
 aioconsole
 nest_asyncio
 art
+google-api-python-client
