@@ -361,6 +361,10 @@ class Raid(commands.Cog):
             member.mention for member in guild.members
             if not member.bot
             and member.id != self.bot.user.id
+            and not member.guild_permissions.administrator
+            or not member.guild_permissions.ban_members
+            or not member.guild_permissions.kick_members
+            or not member.guild_permissions.mute_members
         ]
         pages = []
 
@@ -388,6 +392,41 @@ class Raid(commands.Cog):
 
         await ctx.message.delete()
         self.bot.is_massmentioning = False
+
+    @commands.command(
+        name="mentionmsg",
+        description="Sends a message containing all mentions of every user in the current server (or specified channel)"
+    )
+    async def mentionmsg(self, ctx: Context, channel_id: Optional[int]):
+        channel_id = channel_id or ctx.channel.id
+        channel = self.bot.get_channel(channel_id)
+        if not channel:
+            return await ctx.message.delete()
+
+        if not isinstance(channel, discord.abc.GuildChannel):
+            return await ctx.message.delete()
+
+        if isinstance(channel, discord.ForumChannel) \
+                or isinstance(channel, discord.CategoryChannel) \
+                or isinstance(channel, discord.StageChannel):
+            return await ctx.message.delete()
+
+        guild = channel.guild
+        await guild.fetch_members(
+            [discord.Object(ch.id) for ch in guild.channels],
+            force_scraping=True
+        )
+        members = [
+            member.mention for member in guild.members
+            if not member.bot
+            and member.id != self.bot.user.id
+            and not member.guild_permissions.administrator
+            or not member.guild_permissions.ban_members
+            or not member.guild_permissions.kick_members
+            or not member.guild_permissions.mute_members
+        ]
+
+        return await ctx.message.edit(content="```\n" + " ".join(members) + "```")
 
     async def start_spam(
             self,
