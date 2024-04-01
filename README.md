@@ -16,16 +16,16 @@ Axio is a sequel to [https://github.com/vined-underscore/VBot](VBot).
 ```json
 {
     "tokens": {
-        "main": "tokenmain",
+        "main": "MTExOTY3OTM1NDMwNjI5NzkxOA",
         "other": [
-          "tokenalt1",
-          "tokenalt2"
+          "MTE0MjA0NTc3NDM5MDIzOTMxMw",
+          "MTIwNDUzMDE5NDM1NTA2MDczOA"
         ]
     }
 }
 ```
 
-5. Run axio.py, it will create config folders and you can modify the config.json files for each respective account
+5. Run axio.py, it will create config folders and you can modify the config.json files for each respective account in `./configs/(user-id)`
 
 # I will hang myself if you SKID DON'T DO IT PLEASE
 # I will hang myself if you SKID DON'T DO IT PLEASE
