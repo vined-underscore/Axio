@@ -33,3 +33,4 @@ Axio is a sequel to [https://github.com/vined-underscore/VBot](VBot).
 
 ### TODO:
 1. More commands
+2. I should probably make more help command videos but I'm pretty sure I'm the only person using this bot so it doesn't really matter
