@@ -15,7 +15,7 @@ from discord.ext import commands
 from discord.ext.commands import Context
 from util.token import get_token_data
 from util.colors import Colors as C
-from util.embedder import get_embed_link
+from util.embed import get_embed_link
 from util.errors import AxioException, InvalidToken
 from discord.flags import UserFlags
 from discord.ext.commands import (

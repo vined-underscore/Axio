@@ -1,7 +1,7 @@
 import discord
 import random
 from discord.ext import commands
-from util.embedder import get_embed_link
+from util.embed import get_embed_link
 from util.colors import Colors as C
 from discord.ext.commands import (
     Context,

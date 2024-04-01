@@ -12,7 +12,7 @@ import os
 from util.token import get_token_data
 from colorama import Fore as F
 from util.colors import Colors as C
-from util.embedder import get_embed_link
+from util.embed import get_embed_link
 from discord import Webhook
 from discord.ext import commands
 from discord.ext.commands import (

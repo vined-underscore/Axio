@@ -9,7 +9,7 @@ import string
 from art import text2art
 from util.colors import Colors as C
 from axio import Axio
-from util.embedder import get_embed_link
+from util.embed import get_embed_link
 from typing import Optional
 from discord.ext import commands
 from discord.ext.commands import Context
