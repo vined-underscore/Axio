@@ -388,20 +388,19 @@ Servers: {len(self.bot.guilds)}""",
 
     @commands.command(
         name="firstmsg",
-        description="Sends the first message in the current channel",
+        description="Sends the first message in the current (or specified) channel",
         aliases=["fmsg"]
     )
-    async def firstmsg(self, ctx: Context):
+    async def firstmsg(self, ctx: Context, channel_id: Optional[int]):
+        channel = self.bot.get_channel(channel_id) or ctx.channel
         msg = None
-        async for message in ctx.channel.history(limit=1, oldest_first=True):
+        async for message in channel.history(limit=1, oldest_first=True):
             msg = message
 
         if not msg:
             return await ctx.message.delete()
         else:
             await ctx.message.edit(content=msg.jump_url)
-
-        await ctx.message.delete()
 
     @commands.command(
         name="prefixes",
