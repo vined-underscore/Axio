@@ -3,7 +3,7 @@
 ## Very awesome discord selfbot
 
 Axio is a sequel to [https://github.com/vined-underscore/VBot](VBot).
-> Axio has 60+ commands and it supports multiple accounts at once.
+> Axio has 70+ commands and it supports multiple accounts at once.
 > It mostly uses embeds (with links) instead of normal messages as responses to commands.
 
 ## How to use
@@ -13,7 +13,7 @@ Axio is a sequel to [https://github.com/vined-underscore/VBot](VBot).
 3. You do not need to install and fix discord.py-self manually as it is already in the repository.
 4. Put your tokens in ./configs/tokens.json, the `main` part is where you should put your main account and for your alts you have to put them in the `others` part (optional).
 -  This is how it should look like:
-```py
+```json
 {
     "tokens": {
         "main": "tokenmain",
@@ -29,5 +29,4 @@ Axio is a sequel to [https://github.com/vined-underscore/VBot](VBot).
 
 
 ### TODO:
-1. Account nuker
-2. More commands
+1. More commands

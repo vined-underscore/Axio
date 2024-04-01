@@ -13,7 +13,7 @@ from typing import Any, Optional
 from datetime import datetime
 from discord.ext import commands
 from discord.ext.commands import Context
-from util.token import check_token
+from util.token import get_token_data
 from util.colors import Colors as C
 from util.embedder import get_embed_link
 from util.errors import AxioException, InvalidToken
@@ -92,10 +92,9 @@ Avatar: {user.avatar.url if user.avatar else 'None'}"""
         aliases=["serverinfo"]
     )
     async def server(self, ctx: Context, guild_id: Optional[int]):
-        guild_id = guild_id or ctx.guild.id
-        guild = self.bot.get_guild(guild_id)
+        guild = self.bot.get_guild(guild_id) or ctx.guild
         if not guild:
-            return await ctx.message.delete()
+            raise AxioException("Guild does not exist.")
 
         now = datetime.now().astimezone()
         created_at = guild.created_at
@@ -124,12 +123,46 @@ Icon: {guild.icon.url if guild.icon else 'None'}"""
         save_data(f"{self.bot.data_path}/servers/{guild.name} {guild.id}.txt", info)
 
     @commands.command(
+        name="group",
+        description="Get information about the current (or specified) group chat",
+        aliases=["groupinfo"]
+    )
+    async def group(self, ctx: Context, channel_id: Optional[int]):
+        group = self.bot.get_channel(channel_id) or ctx.channel
+        if not isinstance(group, discord.GroupChannel):
+            raise AxioException(f"{channel_id}: Not a group chat.")
+
+        now = datetime.now().astimezone()
+        created_at = group.created_at
+        days_ago = now - created_at
+        owner = self.bot.get_user(group.owner_id)
+        owner_name = owner.name if owner else "No Owner"
+        info = f"""{group.name} ({group.id})
+
+Created At: {created_at.strftime("%b %d %Y")} ({days_ago.days} days ago)
+Owner: {owner_name} ({group.owner_id})
+Member Count: {len(group.recipients)}
+Icon: {group.icon.url if group.icon else 'None'}"""
+        em = discord.Embed(
+            title="Group Information",
+            description=info,
+            color=random.choice(C.BOT_COLORS)
+        )
+        provider = f"{self.bot.author['name']} ({self.bot.author['id']})"
+        em.set_author(name=f"Axio v{self.bot.version}", url=None)
+        link = await get_embed_link(em, provider)
+        await ctx.send(
+            f"{self.bot.user.mention}||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||{link}")
+        await ctx.message.delete()
+        save_data(f"{self.bot.data_path}/servers/{group.name} {group.id}.txt", info)
+
+    @commands.command(
         name="tokeninfo",
         description="Get information about an account token",
         aliases=["tinfo", "tokinfo"]
     )
     async def tokeninfo(self, ctx: Context, token: str):
-        check = await check_token(token)
+        check = await get_token_data(token)
         if not check[0]:
             raise InvalidToken()
 
@@ -170,7 +203,7 @@ Flags: {user_flags.get(data['flags'])} ({data['flags']})
             if data["status"] == "fail":
                 return await ctx.message.delete()
 
-            await ctx.message.edit(f"""```ansi
+            await ctx.message.edit(content=f"""```ansi
 {C.YELLOW}{ip}{C.RESET} Information
 
 - Country: {C.YELLOW}{data['country']}{C.RESET}
@@ -461,14 +494,15 @@ Servers: {len(self.bot.guilds)}""",
 
     @commands.command(
         name="snipe",
-        description="Shows all logged deleted messages in the current channel"
+        description="Shows all logged deleted messages in the current (or specified) channel"
     )
-    async def snipe(self, ctx: Context):
-        messages = self.bot.snipe_dict.get(ctx.channel.id)
+    async def snipe(self, ctx: Context, channel_id: Optional[int]):
+        channel = self.bot.get_channel(channel_id) or ctx.channel
+        messages = self.bot.snipe_dict.get(channel.id)
         if not messages:
             return await ctx.message.delete()
 
-        full = "|--- Axio ---|\n\n"
+        full = f"|--- Axio ---|\n\n- {channel.name} -\n\n\n"
         for message in messages:
             nl = "\n"
             full += f"{message.author.name} | {message.created_at}\n    {message.content}\n{nl.join([att.url for att in message.attachments])}\n"
@@ -487,11 +521,12 @@ Servers: {len(self.bot.guilds)}""",
 
     @commands.command(
         name="editsnipe",
-        description="Shows the last edited message in the current channel",
+        description="Shows the last edited message in the current (or specified) channel",
         aliases=["esnipe"]
     )
-    async def editsnipe(self, ctx: Context):
-        sniped = self.bot.edit_snipe_dict.get(ctx.channel.id)
+    async def editsnipe(self, ctx: Context, channel_id: Optional[int]):
+        channel = self.bot.get_channel(channel_id) or ctx.channel
+        sniped = self.bot.edit_snipe_dict.get(channel.id)
         if not sniped:
             return await ctx.message.delete()
 

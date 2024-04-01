@@ -340,8 +340,7 @@ class Raid(commands.Cog):
         description="Mentions every person in the current server (or specified channel)"
     )
     async def massmention(self, ctx: Context, channel_id: Optional[int], do_spam: Optional[bool]):
-        channel_id = channel_id or ctx.channel.id
-        channel = self.bot.get_channel(channel_id)
+        channel = self.bot.get_channel(channel_id) or ctx.channel
         mentions_per_msg = 10
         if not channel:
             return await ctx.message.delete()
@@ -400,8 +399,7 @@ class Raid(commands.Cog):
         description="Sends a file containing all mentions of every user in the current (or specified) server"
     )
     async def mentionmsg(self, ctx: Context, guild_id: Optional[int]):
-        guild_id = guild_id or ctx.guild.id
-        guild = self.bot.get_guild(guild_id)
+        guild = self.bot.get_guild(guild_id) or ctx.guild
         if not guild:
             return await ctx.message.delete()
 

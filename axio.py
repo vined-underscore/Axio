@@ -2,7 +2,6 @@ import asyncio
 import json
 import threading
 import typing
-import aiohttp
 import colorama
 import time
 import datetime
@@ -10,6 +9,7 @@ import re
 import discord
 import nest_asyncio
 import os
+from util.token import get_token_data
 from colorama import Fore as F
 from util.colors import Colors as C
 from util.embedder import get_embed_link
@@ -78,6 +78,12 @@ class Axio(commands.Bot):
         nest_asyncio.apply()
         colorama.init()
         super().__init__(*args, **kwargs)
+        self.version = "1.0.1"
+        self.author = {
+            "name": "vined_",  # I will hang myself if you SKID DON'T DO IT PLEASE
+            "id": 1119679354306297918,  # I will hang myself if you SKID DON'T DO IT PLEASE
+        }
+
         self.has_printed_stats = False
         self.cfg_path = cfg_filepath
         self.tokens = tokens
@@ -86,7 +92,6 @@ class Axio(commands.Bot):
         self.is_main = is_main
         self.initial_extensions = initial_extensions
         self.start_time = time.time()
-        self.version = "1.0.0"
         self.em_thumbnail = "https://media.discordapp.net/attachments/1139901136128721009/1212184056452620308/V5OzrAD.png?ex=65f0e960&is=65de7460&hm=eaa8cd1dc4e436caa7a3e181229df8b84686c4201c6240e792a70b13f1535df2&=&format=webp&quality=lossless"
         self.messages_count = 0
         self.is_spamming = False
@@ -111,10 +116,6 @@ class Axio(commands.Bot):
                 "channel_id": 0
             },
             "is_animating": False
-        }
-        self.author = {
-            "name": "vined_",  # I will hang myself if you SKID DON'T DO IT PLEASE
-            "id": 1119679354306297918,  # I will hang myself if you SKID DON'T DO IT PLEASE
         }
         asyncio.create_task(self.clear_actions())
 
@@ -251,22 +252,6 @@ Usage: {ctx.clean_prefix}{command.qualified_name} {param_str}""",
             f"{F.LIGHTBLACK_EX}Nitro Sniper: {f'{F.GREEN}Enabled' if self.cfg['nitro_sniper']['enabled'] else f'{F.RED}Disabled'}{F.RESET}\n")
         self.has_printed_stats = True
 
-
-async def get_token_data(token: str) -> dict | None:
-    async with aiohttp.ClientSession() as client:
-        r = await client.get(
-            "https://discord.com/api/v9/users/@me",
-            headers={
-                "authorization": token
-            }
-        )
-        if r.status == 401:
-            return None
-        else:
-            data = await r.json()
-            return data
-
-
 async def start(token: str):
     with open("./configs/tokens.json", "r") as f:
         tokens = json.load(f)
@@ -279,11 +264,12 @@ async def start(token: str):
         print(f"{F.LIGHTBLACK_EX}You didn't put a main token in {F.YELLOW}./configs/tokens.json{F.RESET}")
         exit()
 
-    data = await get_token_data(token)
-    if not data:
+    token_data = await get_token_data(token)
+    if not token_data[0]:
         print(f"{F.LIGHTBLACK_EX}Invalid token {F.YELLOW}{token}{F.RESET}")
         exit()
 
+    data = token_data[1]
     cfg_path = f"./configs/{data['id']}"
     data_path = f"./data/{data['id']}"
     if not os.path.isdir(cfg_path):
@@ -296,26 +282,28 @@ async def start(token: str):
 
     if not os.path.isdir(data_path):
         os.makedirs(data_path)
-        path = os.path.abspath(data_path)
 
-        files = [
-            "/animate/animations.json",
-            "/friends/friends.json",
-            "/fun/fake_ips.json",
-            "/fun/fake_tokens.json"
-        ]
-        folders = [
-            "/servers",
-            "/tokens",
-            "/users"
-        ]
-        for file in files:
-            if not os.path.isdir(path + "/" + file.split("/")[1]):
-                os.makedirs(path + "/" + file.split("/")[1])
+    path = os.path.abspath(data_path)
+    files = [
+        "/animate/animations.json",
+        "/friends/friends.json",
+        "/fun/fake_ips.json",
+        "/fun/fake_tokens.json"
+    ]
+    folders = [
+        "/servers",
+        "/tokens",
+        "/users",
+        "/groups"
+    ]
+    for file in files:
+        if not os.path.isdir(path + "/" + file.split("/")[1]):
+            os.makedirs(path + "/" + file.split("/")[1])
             with open(path + file, "w+") as f:
                 f.write("{}")
 
-        for folder in folders:
+    for folder in folders:
+        if not os.path.isdir(path + folder):
             os.makedirs(path + folder)
 
     with open(cfg_path + "/config.json", "r") as f:
@@ -355,7 +343,7 @@ async def start(token: str):
             exit()
 
 
-def start_bots():
+def start_threads():
     with open("./configs/tokens.json", "r") as f:
         data = json.load(f)
         tokens = [val for sublist in data["tokens"].values() for val in
@@ -374,4 +362,4 @@ def start_bots():
 
 
 if __name__ == "__main__":
-    start_bots()
+    start_threads()
