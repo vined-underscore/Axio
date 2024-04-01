@@ -248,7 +248,7 @@ Flags: {user_flags.get(data['flags'])} ({data['flags']})
         description="Purges an amount of messages from you in the current (or specified) channel",
         aliases=["clear"]
     )
-    async def purge(self, ctx: Context, amount: int, channel_id: int = None):
+    async def purge(self, ctx: Context, amount: int, channel_id: Optional[int]):
         channel = self.bot.get_channel(channel_id) or ctx.channel
         if not channel:
             raise BadArgument("You either don't have access to the specified channel or it doesn't exist.")
@@ -296,7 +296,7 @@ Servers: {len(self.bot.guilds)}""",
 
     @commands.command(
         name="status",
-        description="Changes the bot status (online, offline, dnd, idle)"
+        description="Changes the accounts status (online, offline, dnd, idle)"
     )
     async def status(self, ctx: Context, status: str):
         match status:
@@ -379,7 +379,7 @@ Servers: {len(self.bot.guilds)}""",
 
     @commands.command(
         name="updateconfig",
-        description="Updates the config without restarting the bot. Doesn't work with the token",
+        description="Updates the accounts config without restarting the bot",
         aliases=["updatecfg"]
     )
     async def updatecfg(self, ctx: Context):
@@ -404,7 +404,7 @@ Servers: {len(self.bot.guilds)}""",
 
     @commands.command(
         name="prefixes",
-        description="List all prefixes in the bot"
+        description="List all prefixes for the accounts config"
     )
     async def prefixes(self, ctx: Context):
         prefix = self.bot.command_prefix
@@ -423,7 +423,7 @@ Servers: {len(self.bot.guilds)}""",
 
     @commands.command(
         name="addprefix",
-        description="Adds a prefix to the bot"
+        description="Adds a prefix to the accounts config"
     )
     async def addprefix(self, ctx: Context, prefix: str):
         if len(prefix) > 32:
@@ -443,7 +443,7 @@ Servers: {len(self.bot.guilds)}""",
 
     @commands.command(
         name="removeprefix",
-        description="Removes a prefix from the bot",
+        description="Removes a prefix from the accounts config",
         aliases=["delprefix"]
     )
     async def removeprefix(self, ctx: Context, prefix: str):
