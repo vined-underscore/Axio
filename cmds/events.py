@@ -102,7 +102,7 @@ class Events(commands.Cog):
 
             try:
                 await message.channel.send(message.content)
-            except:
+            except discord.Forbidden:
                 pass
 
     @commands.Cog.listener()

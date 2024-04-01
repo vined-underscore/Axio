@@ -342,7 +342,7 @@ class Fun(commands.Cog):
             else:
                 try:
                     data[name]["frames"][index]
-                except:
+                except (IndexError, KeyError):
                     em.description = f"Frame at index {index} does not exist"
 
                 else:
@@ -376,7 +376,7 @@ class Fun(commands.Cog):
             else:
                 try:
                     data[name]["frames"][index]
-                except:
+                except (IndexError, KeyError):
                     em.description = f"Frame at index {index} does not exist"
 
                 else:
@@ -393,15 +393,15 @@ class Fun(commands.Cog):
 
     @commands.command(
         name="ascii",
-        description="Turns a string into ASCII art"
+        description="Turns a text into ASCII art"
     )
-    async def ascii(self, ctx: Context, *, string: str):
+    async def ascii(self, ctx: Context, *, text: str):
         wall = ""
-        if len(string) > 8:
+        if len(text) > 8:
             split = []
             count = 0
             current = ""
-            for char in string:
+            for char in text:
                 if count < 8:
                     current += char
                     if char != " ":
@@ -417,11 +417,11 @@ class Fun(commands.Cog):
                 split.append(current)
 
             for el in split:
-                text = text2art(el)
-                wall += f"```\n{text}```\n"
+                ascii_text = text2art(el)
+                wall += f"```\n{ascii_text}```\n"
         else:
-            text = text2art(string)
-            wall = f"```\n{text}```"
+            ascii_text = text2art(text)
+            wall = f"```\n{ascii_text}```"
 
         await ctx.message.edit(content=wall)
 
