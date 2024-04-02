@@ -569,7 +569,7 @@ class Raid(commands.Cog):
             #     system_channel_flags=sys_flags,
             #     preferred_locale=discord.Locale.chinese
             # )
-            invite = await inv_channel.create_invite(validate=None)
+            invite = await inv_channel.create_invite()
             print(f"{F.RESET}[{F.YELLOW}{self.bot.user.name}{F.RESET}] {F.LIGHTBLACK_EX}Made invite {F.GREEN}{invite}")
         except Exception as e:
             print(
