@@ -14,7 +14,6 @@ from typing import Optional
 from discord.ext import commands
 from discord.ext.commands import Context
 
-
 class Fun(commands.Cog):
     def __init__(self, bot: Axio):
         self.bot = bot
@@ -425,6 +424,117 @@ class Fun(commands.Cog):
 
         await ctx.message.edit(content=wall)
 
+    @commands.command(
+        name="slots",
+        description="A simple slot machine game",
+    )
+    async def slots(self, ctx: commands.Context, emoji1: str="\U0001F37A", emoji2: str="\U0001F389", emoji3: str="\U0001F4B0"):
+        emojis = [emoji1, emoji2, emoji3]
 
+        slots = [random.choice(emojis) for _ in range(3)]
+
+        message = await ctx.message.edit(content=f"```ansi\n{C.YELLOW}__________\n|{slots[0]}|{slots[1]}|{slots[2]}|\n|‾‾‾‾‾‾‾‾|⚬\n|        ||\n| SLOTS! |┘\n|        |\n‾‾‾‾‾‾‾‾‾‾{C.RESET}```")
+
+        for _ in range(10):
+            slots = [random.choice(emojis) for _ in range(3)]
+            await message.edit(content=f"```ansi\n{C.YELLOW}__________\n|{slots[0]}|{slots[1]}|{slots[2]}|\n|‾‾‾‾‾‾‾‾|⚬\n|        ||\n| SLOTS! |┘\n|        |\n‾‾‾‾‾‾‾‾‾‾{C.RESET}```")
+            await asyncio.sleep(0.5)
+
+        if all(symbol == slots[0] for symbol in slots):
+            win_message = "Congratulations! You win!"
+        else:
+            win_message = "Better luck next time!"
+
+        await message.edit(content=f"```ansi\n{C.YELLOW}__________\n|{slots[0]}|{slots[1]}|{slots[2]}|\n|‾‾‾‾‾‾‾‾|⚬\n|        ||\n| SLOTS! |┘\n|        |\n‾‾‾‾‾‾‾‾‾‾\n{C.RESET}{win_message}```")
+        
+    @commands.command(
+        name="blackjack",
+        description="Play a game of Blackjack against an AI dealer",
+        aliases=["bj"]
+    )
+    async def blackjack(self, ctx: commands.Context):
+        deck = create_deck()
+        player_hand = [deal_card(deck) for _ in range(2)]
+        dealer_hand = [deal_card(deck) for _ in range(2)]
+
+        player_score = calculate_hand_value(player_hand)
+        dealer_score = calculate_hand_value(dealer_hand)
+
+        player_message = f"Your hand: {' '.join(player_hand)} (Total: {player_score})"
+        dealer_message = f"Dealer's hand: {' '.join(dealer_hand)} (Total: {dealer_score})"
+
+        message_content = f"```ansi\n{player_message}\n{dealer_message}\n{C.YELLOW}Hit or Stand?{C.RESET}\n```"
+        await ctx.message.edit(content=message_content)
+
+        if player_score == 21:
+            await ctx.message.edit(content=f"```ansi\n{player_message}\n{dealer_message}\n{C.YELLOW}Blackjack! You win!{C.RESET}\n```")
+        else:
+            if dealer_score == 21:
+                await ctx.message.edit(content=f"```ansi\n{player_message}\n{dealer_message}\n{C.YELLOW}Dealer has a natural blackjack! You lose!{C.RESET}\n```")
+                return
+
+            while player_score < 21:
+                def check(message):
+                    return message.author == ctx.author and message.content.lower() in ['hit', 'stand']
+
+                response = await self.bot.wait_for('message', check=check)
+
+                await response.delete()
+
+                if response.content.lower() == 'hit':
+                    card = deal_card(deck)
+                    player_hand.append(card)
+                    player_score = calculate_hand_value(player_hand)
+                    player_message = f"Your hand: {' '.join(player_hand)} (Total: {player_score})"
+                    await ctx.message.edit(content=f"```ansi\n{player_message}\n{dealer_message}\n{C.YELLOW}Hit or Stand?{C.RESET}\n```")
+
+                    if player_score > 21:
+                        await ctx.message.edit(content=f"```ansi\n{player_message}\n{dealer_message}\n{C.YELLOW}Bust! You lose!{C.RESET}\n```")
+                        return
+
+                    if dealer_score < 17:
+                        card = deal_card(deck)
+                        dealer_hand.append(card)
+                        dealer_score = calculate_hand_value(dealer_hand)
+                        dealer_message = f"Dealer's hand: {' '.join(dealer_hand)} (Total: {dealer_score})"
+                        await ctx.message.edit(content=f"```ansi\n{player_message}\n{dealer_message}\n{C.YELLOW}Hit or Stand?{C.RESET}\n```")
+                else:
+                    break
+
+            while dealer_score < 17:
+                card = deal_card(deck)
+                dealer_hand.append(card)
+                dealer_score = calculate_hand_value(dealer_hand)
+                dealer_message = f"Dealer's hand: {' '.join(dealer_hand)} (Total: {dealer_score})"
+                await ctx.message.edit(content=f"```ansi\n{player_message}\n{dealer_message}\n{C.YELLOW}Hit or Stand?{C.RESET}\n```")
+
+            if dealer_score > 21:
+                await ctx.message.edit(content=f"```ansi\n{player_message}\n{dealer_message}\n{C.YELLOW}Dealer busts! You win!{C.RESET}\n```")
+            elif dealer_score > player_score:
+                await ctx.message.edit(content=f"```ansi\n{player_message}\n{dealer_message}\n{C.YELLOW}Dealer wins!{C.RESET}\n```")
+            elif dealer_score < player_score:
+                await ctx.message.edit(content=f"```ansi\n{player_message}\n{dealer_message}\n{C.YELLOW}You win!{C.RESET}\n```")
+            else:
+                await ctx.message.edit(content=f"```ansi\n{player_message}\n{dealer_message}\n{C.YELLOW}It's a tie!{C.RESET}\n```")
+
+def create_deck():
+    suits = ['♠', '♥', '♦', '♣']
+    ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+    return [rank + suit for suit in suits for rank in ranks]
+
+def deal_card(deck):
+    return deck.pop(random.randint(0, len(deck)-1))
+
+def calculate_hand_value(hand):
+    values = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 10, 'Q': 10, 'K': 10, 'A': 11}
+    score = sum(values[card[:-1]] for card in hand)
+    num_aces = sum(1 for card in hand if card[:-1] == 'A')
+
+    while score > 21 and num_aces:
+        score -= 10
+        num_aces -= 1
+
+    return score
+    
 async def setup(bot: Axio):
     await bot.add_cog(Fun(bot))

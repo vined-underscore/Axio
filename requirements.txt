@@ -5,3 +5,7 @@ aioconsole
 nest_asyncio
 art
 google-api-python-client
+pypresence
+requests
+whois
+scapy

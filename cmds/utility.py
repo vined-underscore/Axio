@@ -22,6 +22,12 @@ from discord.ext.commands import (
     BadArgument
 )
 
+import requests
+import whois
+import time
+import socket
+from scapy.all import IP, ICMP, sr1
+import shutil
 
 def save_data(
         path: str | PathLike | Path,
@@ -536,7 +542,202 @@ Servers: {len(self.bot.guilds)}""",
         cleana = pattern.sub("", after.content.replace("`", ""))
         await ctx.message.edit(
             content=f"```ansi\n{C.YELLOW}{before.author} {C.RESET}| {C.YELLOW}{before.created_at}\n{C.LIGHT_BLUE}Before: {C.RESET}{cleanb}\n{C.LIGHT_BLUE}After: {C.RESET}{cleana}```")
+    
+    @commands.command(
+        name="mac",
+        description="Searches for MAC address info then displays it",
+        aliases=["macaddress"]
+    )
+    async def mac(self, ctx: commands.Context, mac_address: str):
+        macapi_url = f'https://api.maclookup.app/v2/macs/{mac_address}'
+        try:
+            response = requests.get(macapi_url)
+            response.raise_for_status()
+            data = response.json()
+            if 'found' in data and data['found']:
+                company = data.get('company', 'N/A')
+                address = data.get('address', 'N/A')
+                block_start = data.get('blockStart', 'N/A')
+                block_end = data.get('blockEnd', 'N/A')
+                block_size = data.get('blockSize', 'N/A')
+                block_type = data.get('blockType', 'N/A')
+                last_updated = data.get('updated', 'N/A')
+                is_randomized = data.get('isRand', 'N/A')
+                is_private = data.get('isPrivate', 'N/A')
+                await ctx.message.edit(content=f"""```ansi\n{C.YELLOW}MAC Address Information{C.RESET}
+                                       
+- Company: {C.YELLOW}{company}{C.RESET}
+- Address: {C.YELLOW}{address}{C.RESET}
+- Block Start: {C.YELLOW}{block_start}{C.RESET}
+- Block End: {C.YELLOW}{block_end}{C.RESET}
+- Block Size: {C.YELLOW}{block_size}{C.RESET}
+- Block Type: {C.YELLOW}{block_type}{C.RESET}
+- Last Updated: {C.YELLOW}{last_updated}{C.RESET}
+- Randomized: {C.YELLOW}{is_randomized}{C.RESET}
+- Private: {C.YELLOW}{is_private}{C.RESET}```""")
+            else:
+                await ctx.message.edit(content=f"```ansi\n{C.RED}Vendor information not found for MAC Address: {mac_address}{C.RESET}```")
+        except requests.exceptions.HTTPError as errh:
+            await ctx.message.edit(content=f"```ansi\n{C.RED}HTTP Error: {errh}{C.RESET}```")
+        except requests.exceptions.ConnectionError as errc:
+            await ctx.message.edit(content=f"```ansi\n{C.RED}Error Connecting: {errc}{C.RESET}```")
+        except requests.exceptions.Timeout as errt:
+            await ctx.message.edit(content=f"```ansi\n{C.RED}Timeout Error: {errt}{C.RESET}```")
+        except requests.exceptions.RequestException as err:
+            await ctx.message.edit(content=f"```ansi\n{C.RED}An unexpected error occurred: {err}{C.RESET}```")
+            
+    @commands.command(
+        name="minecraft",
+        description="Searches for a minecraft username and displays any info about it",
+        aliases=["uuid"]
+    )
+    async def minecraft(self, ctx: commands.Context, username_input: str):
+        base_url = "https://api.mojang.com/users/profiles/minecraft/{}"
+        history_url = "https://api.ashcon.app/mojang/v2/user/{}/names"
+        skin_url = "https://crafatar.com/skins/{}"
 
+        uuid_response = requests.get(base_url.format(username_input))
+        if uuid_response.status_code == 200:
+            uuid_data = uuid_response.json()
+            uuid = uuid_data["id"]
+            
+            history_response = requests.get(history_url.format(uuid))
+            if history_response.status_code == 200:
+                history_data = history_response.json()
+                previous_usernames = [entry["name"] for entry in history_data["names"]] if history_data.get("names") else []
+                
+                skin_url = skin_url.format(uuid)
+
+                await ctx.message.edit(content=f"""```ansi\nUUID Info for {C.YELLOW}{username_input}{C.RESET}
+                                       
+- UUID: {C.YELLOW}{uuid}{C.RESET}
+- Previous Usernames: {C.YELLOW}{', '.join(previous_usernames) if previous_usernames else 'N/A'}{C.RESET}
+- Skin URL: {C.YELLOW}{skin_url}{C.RESET}```""")
+            else:
+                await ctx.message.edit(content=f"```ansi\n{C.RED}Failed to retrieve username history.{C.RESET}```")
+        else:
+            await ctx.message.edit(content=f"```ansi\n{C.RED}Failed to retrieve UUID.{C.RESET}```")
+            
+    @commands.command(
+        name="whois",
+        description="Perform a WHOIS lookup on a domain",
+        aliases=["domain"]
+    )
+    async def whois(self, ctx: commands.Context, domain: str):
+        try:
+            result = whois.whois(domain)
+            await ctx.message.edit(content=f"""```ansi\n Domain info for: {C.YELLOW}{domain}{C.RESET}
+                                   
+- Registrar: {C.YELLOW}{result.registrar}{C.RESET}
+- Creation Date: {C.YELLOW}{result.creation_date}{C.RESET}
+- Expiration Date: {C.YELLOW}{result.expiration_date}{C.RESET}
+- Name Servers: {C.YELLOW}{', '.join(result.name_servers)}{C.RESET}
+- Registrant: {C.YELLOW}{result.registrant}{C.RESET}
+- Admin Contact: {C.YELLOW}{result.admin}{C.RESET}
+- Tech Contact: {C.YELLOW}{result.tech}{C.RESET}
+
+Domain owners info
+‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+- Name: {C.YELLOW}{result.name}{C.RESET}
+- State / Area: {C.YELLOW}{result.state}{C.RESET}
+- Owners address: {C.YELLOW}{result.address}{C.RESET}
+- Phone number: {C.YELLOW}{result.phone}{C.RESET}
+- Email address: {C.YELLOW}{result.email}{C.RESET}```""")
+        except whois.parser.PywhoisError as e:
+            await ctx.message.edit(content=f"```ansi\n{C.RED}Error: {e}{C.RESET}```")
+            
+    @commands.command(
+        name="wafbypass",
+        description="Perform WAF bypass on a target URL",
+        aliases=["waf"]
+    )
+    async def wafbypass(self, ctx: commands.Context, url: str, bypass_ssl: bool = False):
+        # Load payloads from JSON file
+        payloads_file_path = os.path.join("configs", "payloads.json")
+        with open(payloads_file_path) as f:
+            payloads_data = json.load(f)
+            common_payloads = payloads_data.get("payloads", [])
+
+        results = []
+
+        for payload in common_payloads:
+            headers = {'User-Agent': payload}
+
+            try:
+                if bypass_ssl:
+                    response = requests.get(url, headers=headers, verify=False)
+                else:
+                    response = requests.get(url, headers=headers)
+                
+                results.append({
+                    'payload': payload,
+                    'status_code': response.status_code,
+                    'response_content': response.text
+                })
+
+            except requests.exceptions.SSLError as ssl_error:
+                results.append({
+                    'payload': payload,
+                    'ssl_error': str(ssl_error)
+                })
+        
+        output = ""
+        for result in results:
+            output += f"+ Payload: {result['payload']}\n"
+            if 'status_code' in result:
+                output += f"- Status Code: {result['status_code']}\n"
+            elif 'ssl_error' in result:
+                output += f"- SSL Verification Error: {result['ssl_error']}\n"
+            output += "\n"
+
+        os.makedirs("outputs", exist_ok=True)
+
+        output_file_path = os.path.join("outputs", "WAFbypass_output.txt")
+        with open(output_file_path, "w") as file:
+            file.write(output)
+
+        with open(output_file_path, "rb") as file:
+            message = await ctx.send(file=discord.File(file, filename="WAFbypass_output.txt"))
+            await ctx.message.edit(content=f"```ansi\n{C.YELLOW}Attempting to bypass via payloads{C.RESET}```")
+        shutil.rmtree("outputs")
+            
+    @commands.command(
+        name="traceroute",
+        description="Perform a traceroute to a target",
+        aliases=["trace"]
+    )
+    async def traceroute(self, ctx: commands.Context, target: str): #Really annoying lol
+        try:
+            target_ip = socket.gethostbyname(target)
+        except socket.gaierror:
+            await ctx.message.edit(content=f"```ansi\n{C.RED}Invalid target address.{C.RESET}```")
+            return
+
+        result = f"```ansi\nTraceroute to {target} ({C.YELLOW}{target_ip}{C.RESET}):```\n```ansi\n"
+        result += "{:<5} {:<20} {:<20} {:<10}\n".format("Hop", "IP Address", "ICMP Type", "RTT (ms)")
+
+        for ttl in range(1, 31):
+            packet = IP(dst=target_ip, ttl=ttl) / ICMP()
+            start_time = time.time()
+            reply = sr1(packet, verbose=0, timeout=1)
+            end_time = time.time()
+            if reply is None:
+                break
+            if reply.type == 0:
+                result += f"{ttl:<5} {reply.src:<20} {C.YELLOW}[Reached destination]{C.RESET}"
+                break
+            else:
+                rtt_ms = (end_time - start_time) * 1000
+                icmp_type = reply[ICMP].type if reply.haslayer(ICMP) else ""
+                result += "{:<5} {:<20} {:<20} {:.2f} ms\n".format(ttl, get_info(reply), icmp_type, rtt_ms)
+
+        result += "```"
+        await ctx.message.edit(result)
+def get_info(reply):
+    info = ""
+    if reply.haslayer(IP):
+        info += f"{reply[IP].src}"
+    return info
 
 async def setup(bot: Axio):
     await bot.add_cog(Utility(bot))

