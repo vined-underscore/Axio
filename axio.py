@@ -9,6 +9,8 @@ import re
 import discord
 import nest_asyncio
 import os
+
+from pypresence import Presence
 from util.token import get_token_data
 from colorama import Fore as F
 from util.colors import Colors as C
@@ -19,6 +21,13 @@ from discord.ext.commands import (
     Context,
     Command
 )
+
+client_id = '1230630747530858608'
+RPC = Presence(client_id)
+RPC.connect()
+while True:
+    RPC.update(state="The best discord selfbot!", details="Currently running Axio", large_image="icon", buttons=[{"label": "Download Axio!", "url": "https://github.com/vined-underscore/Axio"}])
+    break
 
 colorama.init()
 config_template = """{
@@ -62,7 +71,6 @@ config_template = """{
         ]
     }
 }"""
-
 
 class Axio(commands.Bot):
     def __init__(
@@ -359,7 +367,6 @@ def start_threads():
 
     for thread in threads:
         thread.join()
-
 
 if __name__ == "__main__":
     start_threads()
